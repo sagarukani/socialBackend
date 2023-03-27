@@ -1,5 +1,5 @@
 export const AppConstants = {
-    PORT: 3000,
+    PORT: 3005,
 
 
     ACCESS_TOKEN_SECRET: 'MyApp',

@@ -8,9 +8,6 @@ import {Post} from "../models/post";
 import {Like} from "../models/like";
 import {Sequelize} from "sequelize";
 import {Comment} from "../models/comment";
-import {assignWith, map} from "lodash";
-import {Hash} from "crypto";
-
 
 const jwt = require('jsonwebtoken')
 const config = require('config')
@@ -23,53 +20,30 @@ const fs = require('fs')
  * */
 async function login(req: Request, res: Response) {
 
-    let mobileNumber: string = req.body.mobileNumber?.toString()?.replaceAll(" ", "")
-    let countryCode: string = req.body.countryCode?.toString()
-    let gender: String = req.body.gender
-    let genderEnum: GenderEnum = GenderEnum.MALE
-    switch (Number(gender)) {
-        case 1:
-            genderEnum = GenderEnum.MALE
-            break
-        case 2:
-            genderEnum = GenderEnum.FEMALE
-            break
-    }
-    // let deviceId: string = req.body.deviceId?.toString()
-    // let deviceType: string = req.body.deviceType?.toString()
-    // let deviceToken: string = req.body.deviceToken?.toString()
-    // let voipToken: string = req.body.voipToken?.toString() ?? ""
-
-    let otp: number = /*Number((Math.random() * (9999 - 1000) + 1000).toFixed())*/ 1111
+    let email : string = req.body.email?.toString()
+    let password : string = req.body.password?.toString()
 
 
     let userDetails = await User.findOne({
         where: {
-            mobileNumber: mobileNumber,
-            countryCode: countryCode
+            email: email,
+            password : password
         }
     })
 
 
-    let name: string = (userDetails?.name ?? "") === "" ? (`${countryCode} ${mobileNumber}`) : userDetails.name
-
-
     let user: User = new User()
-    user.mobileNumber = mobileNumber
-    user.countryCode = countryCode
-    user.otp = otp
-    user.name = name
-    user.gender = genderEnum
-    // user.voipToken = voipToken
+    user.password = password
+    user.email = email
 
 
     if (userDetails) {
 
         await User.update({
-            mobileNumber: mobileNumber,
-            countryCode: countryCode,
-            otp: otp,
-            name: name,
+            // mobileNumber: mobileNumber,
+            // countryCode: countryCode,
+            password: password,
+            email: email,
             updated_at: commonutils.getCurrentUTC(),
         }, {
             where: {
@@ -80,14 +54,12 @@ async function login(req: Request, res: Response) {
     } else {
         user.created_at = commonutils.getCurrentUTC()
         user.updated_at = commonutils.getCurrentUTC()
-        // user.voipToken = voipToken
-
         await user.save()
     }
 
 
     let responseLogin = {
-        // "otp": otp,
+         userDetails
     }
 
     return commonutils.sendSuccess(req, res, responseLogin)

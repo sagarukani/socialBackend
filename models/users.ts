@@ -26,6 +26,13 @@ export class User extends Model<User> {
     @Column(DataType.TEXT)
     deviceId: string
 
+    @Column(DataType.INTEGER)
+    userType : string
+    //1 : normal, 2 : artist
+
+    @Column(DataType.STRING)
+    password : string
+
     @Column(DataType.TINYINT)
     deviceType: number
 

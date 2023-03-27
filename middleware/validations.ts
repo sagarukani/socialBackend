@@ -4,9 +4,11 @@ import commonutils from "../utils/commonutils";
 
 async function loginValidation(req: Request, res: Response, next: NextFunction) {
 
+    console.log(req);
+
     const validationRule = {
-        "mobileNumber": "required|string",
-        "countryCode": "required|string",
+        "email": "required|string",
+        "password": "required|string"
     }
 
     validator.validatorUtil(req.body, validationRule, {}, (err: any, status: boolean) => {

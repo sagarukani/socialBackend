@@ -26,7 +26,17 @@ let sequelizeClient = sequelizeDbHelper.getSequelizeClint()
 
 //Socket IO Server
 const io: Server = require('socket.io')(server)
+const cors = require("cors");
+app.use(
+    cors({
+        origin: "*",
+    })
+);
 
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    next();
+});
 
 app.use(bodyParser.json({limit: '200mb'}))
 app.use(bodyParser.urlencoded({limit: '200mb', extended: true}))
