@@ -23,6 +23,9 @@ export class User extends Model<User> {
     @Column(DataType.INTEGER)
     otp: number
 
+    @Column(DataType.INTEGER)
+    isVerified: number
+
     @Column(DataType.TEXT)
     deviceId: string
 
@@ -52,7 +55,10 @@ export class User extends Model<User> {
     @Column(DataType.DATE)
     updated_at: Date | any
 
-    @Column(DataType.ENUM(GenderEnum.MALE.valueOf(), GenderEnum.FEMALE.valueOf()))
-    gender: GenderEnum
+    @Column(DataType.DATE)
+    dob: Date | any
+
+    @Column(DataType.INTEGER)
+    gender: number
 
 }

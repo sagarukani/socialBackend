@@ -9,6 +9,8 @@ export const AppConstants = {
 
     API_PATH_LOGIN: "/socket/api/login",
     API_PATH_VERIFY_OTP: "/socket/api/verifyOTP",
+    API_PATH_FORGOT: "/socket/api/forgot",
+    API_PATH_RESET: "/socket/api/resetPassword",
     API_PATH_RESEND_OTP: "/socket/api/resendOTP",
     API_PATH_UPDATE_PROFILE: "/socket/api/updateProfile",
     API_PATH_UPLOAD_IMAGE: "/socket/api/uploadImage",
@@ -19,6 +21,7 @@ export const AppConstants = {
     API_PATH_POST_COMMENT: "/socket/api/commentPost",
     API_PATH_POST_LIKE_USER_LIST: "/socket/api/likeList",
     API_PATH_POST_COMMENT_USER_LIST: "/socket/api/commentList",
+    API_PATH_POST_REGISTER: "/socket/api/register",
 
 
     MAX_FILE_SIZE: 200 * 1000 * 1000,

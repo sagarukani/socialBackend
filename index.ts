@@ -60,7 +60,10 @@ app.use(expressJwt({
     path: [
         AppConstants.API_PATH_LOGIN,
         AppConstants.API_PATH_VERIFY_OTP,
+        AppConstants.API_PATH_FORGOT,
+        AppConstants.API_PATH_RESET,
         AppConstants.API_PATH_RESEND_OTP,
+        AppConstants.API_PATH_POST_REGISTER,
         AppConstants.API_STORAGE + "/",
         "/socket/api/demo",
     ]

@@ -9,7 +9,9 @@ let Router = express.Router()
 
 // User Details
 Router.route(AppConstants.API_PATH_LOGIN).post(validationMiddleware.loginValidation, apiController.login)
-Router.route(AppConstants.API_PATH_VERIFY_OTP).post(validationMiddleware.verifyOTPValidation, apiController.verifyOTP)
+Router.route(AppConstants.API_PATH_VERIFY_OTP).post(apiController.verifyOTP)
+Router.route(AppConstants.API_PATH_FORGOT).post(apiController.forgot)
+Router.route(AppConstants.API_PATH_RESET).post(apiController.resetPassword)
 Router.route(AppConstants.API_PATH_RESEND_OTP).post(validationMiddleware.resendOTPValidation, apiController.resendOTP)
 Router.route(AppConstants.API_PATH_UPDATE_PROFILE).post(apiController.updateProfile)
 Router.route(AppConstants.API_PATH_UPLOAD_IMAGE).post(apiController.uploadImage)
@@ -20,6 +22,7 @@ Router.route(AppConstants.API_PATH_POST_LIST).get(apiController.postList)
 Router.route(AppConstants.API_PATH_POST_COMMENT).post(apiController.commentPost)
 Router.route(AppConstants.API_PATH_POST_LIKE_USER_LIST).get(apiController.likeList)
 Router.route(AppConstants.API_PATH_POST_COMMENT_USER_LIST).get(apiController.commentList)
+Router.route(AppConstants.API_PATH_POST_REGISTER).post(apiController.register)
 Router.route("/socket/api/demo").post(apiController.demo)
 
 

@@ -2,11 +2,11 @@ import {Request, Response} from 'express';
 
 import commonutils from "../utils/commonutils";
 import {User} from "../models/users";
-import {AppConstants, GenderEnum} from "../utils/appconstants";
+import {AppConstants} from "../utils/appconstants";
 import Commonutils from "../utils/commonutils";
 import {Post} from "../models/post";
 import {Like} from "../models/like";
-import {Sequelize} from "sequelize";
+import {INTEGER, Sequelize} from "sequelize";
 import {Comment} from "../models/comment";
 
 const jwt = require('jsonwebtoken')
@@ -14,35 +14,93 @@ const config = require('config')
 const multer = require('multer')
 const fs = require('fs')
 
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+
+/**
+ * Register API
+ **/
+
+async function register(req: Request, res: Response) {
+
+    console.log("register")
+
+    let email: string = req.body.email?.toString()
+    let name: string = req.body.name?.toString()
+    let password: string = req.body.password?.toString()
+    let mobileNumber: string = req.body.mobileNumber?.toString()
+    let dob: string = req.body.dob?.toString()
+    let type: string = req.body.type?.toString()
+    let gender: number = parseInt(req.body.gender?.toString())
+
+    let userDetails = await User.findOne({
+        where: {
+            email: email
+        }
+    })
+
+    let responseLogin = {}
+    var seq = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
+
+
+    if (userDetails) {
+        responseLogin = {"message": "User already exists"}
+        return commonutils.sendError(req, res, responseLogin)
+    } else {
+
+        const hash = bcrypt.hashSync(password, 5);
+
+        let newUser = new User()
+        newUser.email = email
+        newUser.mobileNumber = mobileNumber
+        newUser.otp = Number(seq)
+        newUser.dob = dob
+        newUser.userType = type
+        newUser.name = name
+        newUser.password = hash
+        newUser.gender = gender
+
+        await newUser.save()
+
+        responseLogin = {newUser}
+
+        return commonutils.sendSuccess(req, res, responseLogin)
+    }
+
+
+}
+
+const comparePassword = async (password: string, hash: string) => {
+    try {
+        return await bcrypt.compare(password, hash);
+    } catch (error) {
+        console.log(error);
+    }
+    return false;
+};
 
 /**
  *   Login API
  * */
 async function login(req: Request, res: Response) {
 
-    let email : string = req.body.email?.toString()
-    let password : string = req.body.password?.toString()
+    let email: string = req.body.email?.toString()
+    let password: string = req.body.password?.toString()
 
 
     let userDetails = await User.findOne({
         where: {
-            email: email,
-            password : password
+            email: email
         }
     })
 
+    const hash = userDetails.password;
 
-    let user: User = new User()
-    user.password = password
-    user.email = email
+    const isValidPass = await comparePassword(req.body.password, hash);
 
-
-    if (userDetails) {
+    if (isValidPass) {
 
         await User.update({
-            // mobileNumber: mobileNumber,
-            // countryCode: countryCode,
-            password: password,
             email: email,
             updated_at: commonutils.getCurrentUTC(),
         }, {
@@ -52,17 +110,10 @@ async function login(req: Request, res: Response) {
             returning: true
         })
     } else {
-        user.created_at = commonutils.getCurrentUTC()
-        user.updated_at = commonutils.getCurrentUTC()
-        await user.save()
+        return commonutils.sendError(req, res, "Email password is wrong")
     }
 
-
-    let responseLogin = {
-         userDetails
-    }
-
-    return commonutils.sendSuccess(req, res, responseLogin)
+    return commonutils.sendSuccess(req, res, userDetails)
 
 
 }
@@ -74,26 +125,19 @@ async function login(req: Request, res: Response) {
 
 async function verifyOTP(req: Request, res: Response) {
 
-    let mobileNumber = req.body.mobileNumber?.toString()?.replaceAll(" ", "")
-    let countryCode = req.body.countryCode?.toString()
+    let email = req.body.email?.toString()
     let otp = req.body.otp?.toString()
-    let type = req.body.type?.toString()
-    let deviceId: string = req.body.deviceId?.toString()
-    let deviceType: string = req.body.deviceType?.toString()
-    let deviceToken: string = req.body.deviceToken?.toString()
-    let voipToken: string = req.body.voipToken?.toString() ?? ""
-
-    let isNotify = req.body.isNotify ?? 0
 
     console.log("VERIFY_OTP ", req.body)
 
 
     let userDetails: User = await User.findOne({
         where: {
-            mobileNumber: mobileNumber?.toString(),
-            countryCode: countryCode?.toString()
+            email: email?.toString()
         }
     })
+
+    console.log(userDetails)
 
 
     if (userDetails) {
@@ -106,10 +150,7 @@ async function verifyOTP(req: Request, res: Response) {
             }
 
             await User.update({
-                deviceId: deviceId,
-                deviceToken: deviceToken,
-                deviceType: Number(deviceType),
-                updated_at: commonutils.getCurrentUTC()
+                isVerified: 1
             }, {
                 where: {
                     id: userDetails.id
@@ -161,14 +202,89 @@ async function verifyOTP(req: Request, res: Response) {
 
     } else {
         let response = {
-            "message": "Phone Number doesn't exits",
+            "message": "Email doesn't exits",
             "errors": {
-                "phoneNo": "Phone Number doesn't exits"
+                "phoneNo": "Email doesn't exits"
             }
         }
 
         return commonutils.sendError(req, res, response)
     }
+}
+
+async function forgot(req: Request, res: Response) {
+    let email: string = req.body.email?.toString()
+
+    let userDetails = await User.findOne({
+        where: {
+            email: email
+        }
+    })
+
+
+    var seq = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
+
+    if (userDetails) {
+
+        userDetails.otp = Number(seq)
+
+        await User.update({
+            email: email,
+            updated_at: commonutils.getCurrentUTC(),
+            otp: Number(seq)
+
+        }, {
+            where: {
+                id: userDetails.id
+            },
+            returning: true
+        })
+    } else {
+        return commonutils.sendError(req, res, "Email not found")
+    }
+
+
+    let responseLogin = {
+        userDetails
+    }
+
+    return commonutils.sendSuccess(req, res, responseLogin)
+}
+
+async function resetPassword(req: Request, res: Response) {
+    let email: string = req.body.email?.toString()
+    let password: string = req.body.password?.toString()
+
+    let userDetails = await User.findOne({
+        where: {
+            email: email
+        }
+    })
+
+    if (userDetails) {
+
+        const hash = bcrypt.hashSync(password, 5);
+
+        await User.update({
+            email: email,
+            updated_at: commonutils.getCurrentUTC(),
+            password: hash
+        }, {
+            where: {
+                id: userDetails.id
+            },
+            returning: true
+        })
+    } else {
+        return commonutils.sendError(req, res, "Email not found")
+    }
+
+
+    let responseLogin = {
+        userDetails
+    }
+
+    return commonutils.sendSuccess(req, res, responseLogin)
 }
 
 /**
@@ -221,22 +337,12 @@ async function resendOTP(req: Request, res: Response) {
 async function updateProfile(req: Request, res: Response) {
 
     let name: string = req.body.name?.toString()
-    let gender: string = req.body.gender?.toString()
+    let gender: number = parseInt(req.body.gender?.toString())
     let userId = req.body.user.id ?? ""
-
-    let genderEnum: GenderEnum = GenderEnum.MALE
-    switch (Number(gender)) {
-        case 1:
-            genderEnum = GenderEnum.MALE
-            break
-        case 2:
-            genderEnum = GenderEnum.FEMALE
-            break
-    }
 
     let updateData = {
         "name": "",
-        "gender": GenderEnum.MALE,
+        "gender": gender,
         "image": ""
     }
 
@@ -244,12 +350,6 @@ async function updateProfile(req: Request, res: Response) {
         updateData.name = name
     } else {
         delete updateData.name
-    }
-
-    if (gender && gender !== "") {
-        updateData.gender = genderEnum
-    } else {
-        delete updateData.gender
     }
 
     let image = req.body.image
@@ -621,7 +721,7 @@ async function demo(req: Request, res: Response) {
     let answer = req.body.answer
 
     for (let key in answer) {
-        console.log(key +" " + answer[key]);
+        console.log(key + " " + answer[key]);
     }
 
 }
@@ -639,5 +739,8 @@ export default {
     commentPost,
     likeList,
     commentList,
-    demo
+    demo,
+    register,
+    forgot,
+    resetPassword
 }
