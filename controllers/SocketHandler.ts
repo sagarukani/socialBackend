@@ -1,10 +1,8 @@
 import {Socket} from "socket.io";
-import {FCMHelper} from "../fcm/fcmHelper";
 import {SequelizeDbHelper} from "../dbhelpers/sequelizeDbHelper";
 
 
 let sequelizeDbHelper = SequelizeDbHelper.getInstance()
-let fcmHelper = FCMHelper.getInstance()
 
 
 async function chatHandler(client: Socket) {
