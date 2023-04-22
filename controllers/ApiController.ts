@@ -423,6 +423,8 @@ async function uploadImage(req: any, res: Response) {
 
         uploadImage(req, res, async (err: any) => {
 
+            console.log(req.file)
+
             if (!req.file) {
                 let message = {
                     'message': "Please select an image !!",
